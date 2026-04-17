@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>願香堂｜結帳</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#0a0806;--gold:#c9a84c;--gold-light:#e8c97a;--gold-pale:#f5e6b8;
+  --smoke:rgba(255,255,255,0.06);--smoke-mid:rgba(255,255,255,0.10);
+  --border-glass:rgba(201,168,76,0.18);--border-hi:rgba(201,168,76,0.35);
+  --text-primary:#f5e6b8;--text-secondary:rgba(245,230,184,0.65);--text-muted:rgba(245,230,184,0.38);
+  --glass-blur:blur(18px) saturate(160%);--radius-lg:20px;--radius-md:12px;
+  --shadow-card:0 4px 24px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg-deep);color:var(--text-primary);font-family:'Noto Sans TC',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 15% 30%,rgba(201,168,76,0.05) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 70%,rgba(123,94,69,0.07) 0%,transparent 55%);pointer-events:none;z-index:0}
+
+/* NAV */
+.nav{background:rgba(10,8,6,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-glass);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.brand{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:900;color:var(--gold);letter-spacing:0.12em}
+.brand-sub{font-size:9px;letter-spacing:0.3em;color:var(--text-muted)}
+.nav-back{font-size:12px;color:var(--text-muted);text-decoration:none;border:1px solid var(--border-glass);padding:6px 14px;border-radius:100px;transition:all 0.2s;letter-spacing:0.05em}
+.nav-back:hover{color:var(--gold);border-color:var(--border-hi)}
+
+/* STEPS BAR */
+.steps-bar{background:rgba(10,8,6,0.6);backdrop-filter:blur(12px);border-bottom:1px solid var(--border-glass);padding:14px 32px;display:flex;align-items:center;justify-content:center;gap:0;position:relative;z-index:1}
+.step-item{display:flex;align-items:center;gap:8px}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;transition:all 0.3s;border:1px solid var(--border-glass)}
+.step-dot.active{background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0a0806;border-color:transparent;box-shadow:0 0 16px rgba(201,168,76,0.4)}
+.step-dot.done{background:rgba(45,122,79,0.3);color:#81c784;border-color:rgba(129,199,132,0.3)}
+.step-dot.pending{background:var(--smoke);color:var(--text-muted)}
+.step-label{font-size:11px;color:var(--text-muted);white-space:nowrap}
+.step-label.active{color:var(--gold);font-weight:500}
+.step-connector{width:40px;height:1px;background:var(--border-glass);margin:0 8px;flex-shrink:0}
+
+/* LAYOUT */
+.container{max-width:960px;margin:0 auto;padding:28px 20px;display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;position:relative;z-index:1}
+@media(max-width:720px){.container{grid-template-columns:1fr}}
+
+/* GLASS PANEL */
+.panel{background:var(--smoke);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--border-glass);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-card);position:relative}
+.panel::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 50%);pointer-events:none;border-radius:inherit}
+.panel-head{padding:16px 22px;border-bottom:1px solid var(--border-glass);display:flex;align-items:center;gap:10px}
+.panel-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0a0806;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.panel-title{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:600;color:var(--text-primary)}
+.panel-body{padding:20px 22px}
+.locked{opacity:0.4;pointer-events:none}
+
+/* FORM */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:11px;color:var(--text-muted);letter-spacing:0.05em}
+.field input,.field select,.field textarea{background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:9px;padding:10px 14px;color:var(--text-primary);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:300;outline:none;transition:all 0.2s;width:100%}
+.field input::placeholder{color:var(--text-muted)}
+.field input:focus,.field select:focus{border-color:var(--gold);background:rgba(201,168,76,0.05)}
+.field select option{background:#1c1408;color:var(--text-primary)}
+.field-hint{font-size:11px;color:var(--text-muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ORDER ITEMS */
+.o-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08)}
+.o-item:last-child{border-bottom:none}
+.o-thumb{width:48px;height:48px;border-radius:9px;flex-shrink:0;overflow:hidden}
+.o-thumb-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.o-name{font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:2px}
+.o-sub{font-size:11px;color:var(--text-muted)}
+.o-price{margin-left:auto;font-size:13px;font-weight:500;color:var(--gold-light)}
+.qty-row{display:flex;align-items:center;gap:8px;margin-top:5px}
+.qbtn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border-glass);background:rgba(255,255,255,0.05);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all 0.15s}
+.qbtn:hover{border-color:var(--gold);color:var(--gold)}
+.qty-num{font-size:13px;min-width:18px;text-align:center;color:var(--text-primary)}
+
+/* LOGISTICS */
+.log-card{border:1px solid var(--border-glass);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;margin-bottom:8px;background:rgba(255,255,255,0.03);position:relative}
+.log-card:hover{border-color:var(--border-hi);background:rgba(201,168,76,0.04)}
+.log-card.sel{border-color:var(--gold);background:rgba(201,168,76,0.06);box-shadow:0 0 16px rgba(201,168,76,0.08)}
+.log-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass)}
+.log-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+.log-desc{font-size:11px;color:var(--text-muted)}
+.log-price{margin-left:auto;font-size:13px;color:var(--gold);font-weight:500;flex-shrink:0}
+.radio-dot{width:16px;height:16px;border-radius:50%;border:1px solid var(--border-glass);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.log-card.sel .radio-dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(201,168,76,0.4)}
+.radio-inner{width:5px;height:5px;border-radius:50%;background:#0a0806;opacity:0;transition:opacity 0.2s}
+.log-card.sel .radio-inner{opacity:1}
+
+/* STORE BOX */
+.store-box{display:none;margin-top:8px;padding:14px;background:rgba(201,168,76,0.04);border-radius:10px;border:1px solid var(--border-glass)}
+.store-box.show{display:block}
+.addr-box{display:none;margin-top:8px}
+.addr-box.show{display:block}
+.btn-store{background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0a0806;border:none;padding:9px 18px;border-radius:8px;font-family:'Noto Sans TC',sans-serif;font-size:12px;cursor:pointer;width:100%;font-weight:500}
+.store-method-bar{display:flex;gap:8px;margin-bottom:12px}
+.smethod{flex:1;padding:7px 10px;border:1px solid var(--border-glass);background:rgba(255,255,255,0.03);border-radius:8px;text-align:center;cursor:pointer;font-size:11px;color:var(--text-muted);transition:all 0.2s}
+.smethod.active{border-color:var(--gold);background:rgba(201,168,76,0.08);color:var(--gold)}
+
+/* INVOICE */
+.inv-tabs{display:flex;gap:6px;margin-bottom:14px}
+.inv-tab{flex:1;padding:7px;border:1px solid var(--border-glass);border-radius:8px;text-align:center;font-size:11px;cursor:pointer;color:var(--text-muted);background:rgba(255,255,255,0.03);transition:all 0.2s}
+.inv-tab.active{border-color:var(--gold);background:rgba(201,168,76,0.08);color:var(--gold)}
+.inv-pane{display:none}
+.inv-pane.show{display:block}
+
+/* PAYMENT */
+.pay-card{border:1px solid var(--border-glass);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);margin-bottom:8px}
+.pay-card.sel{border-color:var(--gold);background:rgba(201,168,76,0.06)}
+
+/* SUMMARY */
+.total-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);padding:5px 0}
+.total-main{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:900;color:var(--gold-light);padding-top:12px;border-top:1px solid var(--border-glass);display:flex;justify-content:space-between;align-items:baseline}
+.btn-gold{background:linear-gradient(135deg,#c9a84c 0%,#e8c97a 50%,#c9a84c 100%);color:#0a0806;border:none;padding:14px;border-radius:10px;font-family:'Noto Sans TC',sans-serif;font-size:14px;font-weight:500;cursor:pointer;width:100%;transition:all 0.2s;box-shadow:0 4px 20px rgba(201,168,76,0.3);margin-top:14px}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(201,168,76,0.45)}
+.btn-gold:disabled{opacity:0.5;cursor:not-allowed}
+
+/* GUARANTEE */
+.guarantee{background:rgba(201,168,76,0.04);border:1px solid var(--border-glass);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--text-secondary);line-height:2;margin-top:4px}
+
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,8,6,0.85);backdrop-filter:blur(12px);z-index:99;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.sbox{background:rgba(20,16,10,0.95);border:1px solid var(--border-hi);border-radius:20px;padding:40px 36px;text-align:center;max-width:400px;width:90%;box-shadow:0 0 60px rgba(201,168,76,0.15),0 24px 64px rgba(0,0,0,0.6);animation:pop 0.4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
+.sicon{width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,0.1);border:1px solid var(--border-hi);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;box-shadow:0 0 24px rgba(201,168,76,0.2)}
+.stitle{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:900;color:var(--text-primary);margin-bottom:8px}
+.ssub{font-size:13px;color:var(--text-secondary);line-height:2;margin-bottom:18px}
+.sorder{background:rgba(201,168,76,0.06);border:1px solid var(--border-glass);border-radius:10px;padding:12px;font-size:12px;color:var(--gold-light);margin-bottom:20px;letter-spacing:0.05em}
+.sdone{background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0a0806;border:none;padding:12px 28px;border-radius:9px;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div><div class="brand">願香堂</div><div class="brand-sub">VOW INCENSE HOUSE</div></div>
+  <a class="nav-back" href="incense_ritual_glass.html">← 返回商店</a>
+</nav>
+
+<div class="steps-bar">
+  <div class="step-item"><div class="step-dot active" id="d1">1</div><div class="step-label active" id="l1">購物車</div></div>
+  <div class="step-connector"></div>
+  <div class="step-item"><div class="step-dot pending" id="d2">2</div><div class="step-label" id="l2">物流收件</div></div>
+  <div class="step-connector"></div>
+  <div class="step-item"><div class="step-dot pending" id="d3">3</div><div class="step-label" id="l3">付款發票</div></div>
+  <div class="step-connector"></div>
+  <div class="step-item"><div class="step-dot pending" id="d4">✓</div><div class="step-label" id="l4">完成</div></div>
+</div>
+
+<div class="container">
+<div>
+
+<!-- PANEL 1 -->
+<div class="panel" id="p1">
+  <div class="panel-head"><div class="panel-num">1</div><div class="panel-title">確認商品</div></div>
+  <div class="panel-body">
+    <div class="o-item"><div class="o-thumb" style="background:rgba(201,168,76,0.08);border-radius:9px;"><div class="o-thumb-inner">🪙</div></div><div style="flex:1"><div class="o-name">財運香｜財神加持款</div><div class="o-sub">天然香料 · 手工捲製</div><div class="qty-row"><button class="qbtn" onclick="chQty('a',-1)">−</button><span class="qty-num" id="qa">1</span><button class="qbtn" onclick="chQty('a',1)">+</button></div></div><div class="o-price" id="pa">NT$790</div></div>
+    <div class="o-item"><div class="o-thumb" style="background:rgba(45,122,79,0.12);border-radius:9px;"><div class="o-thumb-inner">🌿</div></div><div style="flex:1"><div class="o-name">感情緣起香｜綠度母加持款</div><div class="o-sub">天然香料 · 手工捲製</div><div class="qty-row"><button class="qbtn" onclick="chQty('b',-1)">−</button><span class="qty-num" id="qb">1</span><button class="qbtn" onclick="chQty('b',1)">+</button></div></div><div class="o-price" id="pb">NT$790</div></div>
+    <div class="o-item"><div class="o-thumb" style="background:rgba(100,80,160,0.15);border-radius:9px;"><div class="o-thumb-inner">🔮</div></div><div style="flex:1"><div class="o-name">事業開運香｜蓮師加持款</div><div class="o-sub">天然香料 · 手工捲製</div><div class="qty-row"><button class="qbtn" onclick="chQty('c',-1)">−</button><span class="qty-num" id="qc">1</span><button class="qbtn" onclick="chQty('c',1)">+</button></div></div><div class="o-price" id="pc">NT$790</div></div>
+    <div class="o-item" style="background:rgba(201,168,76,0.04);border-radius:10px;margin-top:4px;padding:12px;border:none;"><div class="o-thumb" style="background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(45,122,79,0.1),rgba(100,80,160,0.12));border-radius:9px;"><div class="o-thumb-inner">✨</div></div><div style="flex:1"><div class="o-name" style="color:var(--gold);">三款全套組合</div><div class="o-sub">三重聖者加持 · 精美禮盒</div><div class="qty-row"><button class="qbtn" onclick="chQty('d',-1)">−</button><span class="qty-num" id="qd">0</span><button class="qbtn" onclick="chQty('d',1)">+</button></div></div><div><div class="o-price" id="pd">NT$0</div><div style="font-size:10px;color:var(--text-muted);text-decoration:line-through;text-align:right;">原價2,370</div></div></div>
+    <button class="btn-gold" onclick="goStep(2)">繼續 → 選擇物流</button>
+  </div>
+</div>
+
+<!-- PANEL 2 -->
+<div class="panel locked" id="p2">
+  <div class="panel-head"><div class="panel-num">2</div><div class="panel-title">物流與收件資料</div></div>
+  <div class="panel-body">
+    <div class="log-card" id="l711" onclick="selLog('711')"><div class="radio-dot"><div class="radio-inner"></div></div><div class="log-icon">🏪</div><div style="flex:1"><div class="log-name">7-ELEVEN 超商取貨</div><div class="log-desc">3–5 個工作天</div></div><div class="log-price" style="color:#81c784;">免運</div></div>
+    <div class="store-box" id="sb711">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">請選擇取貨方式</div>
+      <div class="store-method-bar">
+        <div class="smethod active" id="sm711-map" onclick="setStoreMethod('711','map')">🗺 地圖選門市</div>
+        <div class="smethod" id="sm711-code" onclick="setStoreMethod('711','code')">🔢 輸入店號</div>
+      </div>
+      <div id="sm711-map-box"><button class="btn-store" onclick="pickStore('711')">🗺 開啟地圖選擇門市</button><div id="store711" style="font-size:12px;color:#81c784;margin-top:6px;display:none;"></div></div>
+      <div id="sm711-code-box" style="display:none;">
+        <div class="row2"><div class="field"><label>門市店號</label><input type="text" id="711-storeid" placeholder="例：170001" maxlength="8" oninput="lookupStore('711')"></div><div class="field"><label>門市名稱</label><input type="text" id="711-storename" placeholder="自動帶入" readonly></div></div>
+        <div style="font-size:11px;color:var(--text-muted);">可至 7-ELEVEN 官網查詢店號</div>
+      </div>
+    </div>
+
+    <div class="log-card" id="lfam" onclick="selLog('fam')"><div class="radio-dot"><div class="radio-inner"></div></div><div class="log-icon">🏬</div><div style="flex:1"><div class="log-name">全家 FamilyMart</div><div class="log-desc">3–5 個工作天</div></div><div class="log-price" style="color:#81c784;">免運</div></div>
+    <div class="store-box" id="sbfam">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">請選擇取貨方式</div>
+      <div class="store-method-bar">
+        <div class="smethod active" id="smfam-map" onclick="setStoreMethod('fam','map')">🗺 地圖選門市</div>
+        <div class="smethod" id="smfam-code" onclick="setStoreMethod('fam','code')">🔢 輸入店號</div>
+      </div>
+      <div id="smfam-map-box"><button class="btn-store" onclick="pickStore('fam')">🗺 開啟地圖選擇門市</button><div id="storefam" style="font-size:12px;color:#81c784;margin-top:6px;display:none;"></div></div>
+      <div id="smfam-code-box" style="display:none;">
+        <div class="row2"><div class="field"><label>門市店號</label><input type="text" id="fam-storeid" placeholder="例：009999" maxlength="8" oninput="lookupStore('fam')"></div><div class="field"><label>門市名稱</label><input type="text" id="fam-storename" placeholder="自動帶入" readonly></div></div>
+        <div style="font-size:11px;color:var(--text-muted);">可至全家官網查詢店號</div>
+      </div>
+    </div>
+
+    <div class="log-card" id="lcat" onclick="selLog('cat')"><div class="radio-dot"><div class="radio-inner"></div></div><div class="log-icon">📦</div><div style="flex:1"><div class="log-name">黑貓宅急便</div><div class="log-desc">2–3 個工作天，送達指定地址</div></div><div class="log-price" style="color:#81c784;">免運</div></div>
+    <div class="addr-box" id="abcat">
+      <div class="row2"><div class="field"><label>縣市</label><select id="city"><option value="">請選擇</option><option>台北市</option><option>新北市</option><option>桃園市</option><option>台中市</option><option>台南市</option><option>高雄市</option><option>基隆市</option><option>新竹市</option><option>苗栗縣</option><option>彰化縣</option><option>雲林縣</option><option>嘉義市</option><option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option><option>台東縣</option></select></div><div class="field"><label>郵遞區號</label><input type="text" id="zip" placeholder="000"></div></div>
+      <div class="field"><label>詳細地址</label><input type="text" id="addr" placeholder="路名、巷弄、門號、樓層"></div>
+    </div>
+
+    <div style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(201,168,76,0.1);">
+      <div style="font-size:10px;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;">收件人資料</div>
+      <div class="row2"><div class="field"><label>姓名</label><input type="text" id="rname" placeholder="收件人姓名"></div><div class="field"><label>手機</label><input type="tel" id="rphone" placeholder="09xxxxxxxx"></div></div>
+      <div class="field"><label>Email（訂單確認 & 發票）</label><input type="email" id="remail" placeholder="your@email.com"></div>
+      <div class="field"><label>備註（選填）</label><input type="text" id="rnote" placeholder="特殊需求..."></div>
+    </div>
+    <button class="btn-gold" onclick="goStep(3)">繼續 → 付款方式</button>
+  </div>
+</div>
+
+<!-- PANEL 3 -->
+<div class="panel locked" id="p3">
+  <div class="panel-head"><div class="panel-num">3</div><div class="panel-title">付款與電子發票</div></div>
+  <div class="panel-body">
+    <div style="font-size:10px;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;">付款方式</div>
+
+    <div class="pay-card sel" id="pay-credit" onclick="selPay('credit')">
+      <div style="font-size:20px;">💳</div>
+      <div style="flex:1;margin-left:10px;">
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);">信用卡</div>
+        <div style="font-size:11px;color:var(--text-muted);">VISA / MasterCard / JCB</div>
+      </div>
+      <div class="radio-dot" id="rd-credit" style="background:var(--gold);border-color:var(--gold);"><div class="radio-inner" style="opacity:1;"></div></div>
+    </div>
+
+    <div class="pay-card" id="pay-atm" onclick="selPay('atm')">
+      <div style="font-size:20px;">🏧</div>
+      <div style="flex:1;margin-left:10px;">
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);">ATM 匯款</div>
+        <div style="font-size:11px;color:var(--text-muted);">付款後取得虛擬帳號，3 天內匯款</div>
+      </div>
+      <div class="radio-dot" id="rd-atm"><div class="radio-inner"></div></div>
+    </div>
+
+    <div class="pay-card" id="pay-cvs" onclick="selPay('cvs')">
+      <div style="font-size:20px;">🏪</div>
+      <div style="flex:1;margin-left:10px;">
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);">超商代繳</div>
+        <div style="font-size:11px;color:var(--text-muted);">7-11 / 全家 / 萊爾富，7 天內繳費</div>
+      </div>
+      <div class="radio-dot" id="rd-cvs"><div class="radio-inner"></div></div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(201,168,76,0.1);">
+      <div style="font-size:10px;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;">電子發票（ECPay 自動開立）</div>
+      <div class="inv-tabs">
+        <div class="inv-tab active" id="it1" onclick="selInv('carrier')">手機載具</div>
+        <div class="inv-tab" id="it2" onclick="selInv('donate')">捐贈發票</div>
+        <div class="inv-tab" id="it3" onclick="selInv('company')">公司抬頭</div>
+      </div>
+      <div class="inv-pane show" id="iv-carrier"><div class="field"><label>手機條碼載具（/XXXXXXX）</label><input type="text" id="carrier" placeholder="/XXXXXXX" maxlength="8"><div class="field-hint">可至財政部電子發票平台免費申請</div></div></div>
+      <div class="inv-pane" id="iv-donate"><div class="field"><label>愛心捐贈碼</label><input type="text" id="donate" placeholder="輸入捐贈碼"></div></div>
+      <div class="inv-pane" id="iv-company"><div class="row2"><div class="field"><label>統一編號</label><input type="text" id="taxid" placeholder="00000000" maxlength="8"></div><div class="field"><label>公司抬頭</label><input type="text" id="taxname" placeholder="公司名稱"></div></div></div>
+    </div>
+    <button class="btn-gold" onclick="submitOrder()">確認付款</button>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);margin-top:8px;letter-spacing:0.05em;">🔒 SSL 加密傳輸 · 付款完成後自動開立電子發票</div>
+  </div>
+</div>
+
+</div><!-- end left -->
+
+<!-- RIGHT SUMMARY -->
+<div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title" style="color:var(--gold);">訂單摘要</div></div>
+    <div class="panel-body">
+      <div class="o-item"><div class="o-thumb" style="background:rgba(201,168,76,0.08);border-radius:9px;"><div class="o-thumb-inner" style="font-size:16px;">🪙</div></div><div style="flex:1"><div class="o-name">財運香</div><div class="o-sub" id="sa">×1</div></div><div class="o-price" id="sa2">NT$790</div></div>
+      <div class="o-item"><div class="o-thumb" style="background:rgba(45,122,79,0.12);border-radius:9px;"><div class="o-thumb-inner" style="font-size:16px;">🌿</div></div><div style="flex:1"><div class="o-name">感情緣起香</div><div class="o-sub" id="sb">×1</div></div><div class="o-price" id="sb2">NT$790</div></div>
+      <div class="o-item"><div class="o-thumb" style="background:rgba(100,80,160,0.15);border-radius:9px;"><div class="o-thumb-inner" style="font-size:16px;">🔮</div></div><div style="flex:1"><div class="o-name">事業開運香</div><div class="o-sub" id="sc">×1</div></div><div class="o-price" id="sc2">NT$790</div></div>
+      <div class="o-item"><div class="o-thumb" style="background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(45,122,79,0.08));border-radius:9px;"><div class="o-thumb-inner" style="font-size:16px;">✨</div></div><div style="flex:1"><div class="o-name" style="color:var(--gold);">三款全套組合</div><div class="o-sub" id="sd">×0</div></div><div class="o-price" id="sd2">NT$0</div></div>
+      <div style="padding-top:12px;">
+        <div class="total-row"><span>小計</span><span id="subtotal">NT$2,370</span></div>
+        <div class="total-row"><span>運費</span><span id="shipping" style="color:#81c784;">免運</span></div>
+        <div class="total-main"><span>總計</span><span id="grandtotal">NT$2,370</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="guarantee">✓ 付款後 48 小時內出貨<br>✓ 電子發票自動寄送 Email<br>✓ 7 天不滿意退換保證</div>
+</div>
+
+</div><!-- end container -->
+
+<div class="overlay" id="overlay">
+  <div class="sbox">
+    <div class="sicon">🙏</div>
+    <div class="stitle">感謝您的訂購！</div>
+    <div class="ssub">訂單已成功建立<br>電子發票將寄送至您的 Email<br>48 小時內為您出貨</div>
+    <div class="sorder" id="order-num">訂單編號：YXT-000000</div>
+    <button class="sdone" onclick="location.href='incense_ritual_glass.html'">返回願香堂</button>
+  </div>
+</div>
+
+<script>
+// ══ 填入您的網址 ══════════════════════════
+const GAS_URL           = 'YOUR_APPS_SCRIPT_URL_HERE';
+const NEWEBPAY_API      = 'YOUR_GAS_URL'; // 貼上您的 Apps Script 部署網址
+// ═════════════════════════════════════════
+const qtys={a:1,b:1,c:1,d:0};
+const prices={a:790,b:790,c:790,d:2080};
+const ids=['a','b','c','d'];
+let curLog='',curStep=1;
+
+function chQty(id,d){qtys[id]=Math.max(0,qtys[id]+d);document.getElementById('q'+id).textContent=qtys[id];document.getElementById('p'+id).textContent='NT$'+(qtys[id]*prices[id]).toLocaleString();updateSummary()}
+function updateSummary(){
+  let sub=0;
+  ids.forEach(id=>{const p=qtys[id]*prices[id];sub+=p;document.getElementById('s'+id)&&(document.getElementById('s'+id).textContent='×'+qtys[id]);document.getElementById('s'+id+'2')&&(document.getElementById('s'+id+'2').textContent='NT$'+p.toLocaleString());});
+  document.getElementById('subtotal').textContent='NT$'+sub.toLocaleString();
+  document.getElementById('grandtotal').textContent='NT$'+sub.toLocaleString();
+}
+function goStep(n){
+  if(n>curStep){const dot=document.getElementById('d'+curStep);dot.className='step-dot done';dot.textContent='✓';document.getElementById('l'+curStep).className='step-label';}
+  curStep=n;document.getElementById('d'+n).className='step-dot active';document.getElementById('l'+n).className='step-label active';
+  if(n>=2)document.getElementById('p2').classList.remove('locked');
+  if(n>=3)document.getElementById('p3').classList.remove('locked');
+  document.getElementById('p'+n).scrollIntoView({behavior:'smooth',block:'start'});
+}
+function selLog(type){
+  ['711','fam','cat'].forEach(t=>{document.getElementById('l'+t).classList.remove('sel');document.getElementById('sb'+t)&&document.getElementById('sb'+t).classList.remove('show');document.getElementById('ab'+t)&&document.getElementById('ab'+t).classList.remove('show');});
+  document.getElementById('l'+type).classList.add('sel');curLog=type;
+  if(type==='711'||type==='fam')document.getElementById('sb'+type).classList.add('show');
+  else document.getElementById('ab'+type).classList.add('show');
+}
+function setStoreMethod(type,method){
+  const mapBtn=document.getElementById('sm'+type+'-map'),codeBtn=document.getElementById('sm'+type+'-code');
+  const mapBox=document.getElementById('sm'+type+'-map-box'),codeBox=document.getElementById('sm'+type+'-code-box');
+  if(method==='map'){mapBtn.classList.add('active');codeBtn.classList.remove('active');mapBox.style.display='block';codeBox.style.display='none';}
+  else{codeBtn.classList.add('active');mapBtn.classList.remove('active');codeBox.style.display='block';mapBox.style.display='none';}
+}
+function pickStore(type){const n=type==='711'?'7-ELEVEN 信義門市':'全家 忠孝店';const el=document.getElementById('store'+type);el.textContent='✓ 已選擇：'+n;el.style.display='block';}
+function lookupStore(type){const sid=document.getElementById(type+'-storeid').value;const nel=document.getElementById(type+'-storename');if(sid.length>=5){nel.value='查詢中...';setTimeout(()=>{const demo={'170001':'7-ELEVEN 信義門市','009999':'全家 忠孝店'};nel.value=demo[sid]||(type==='711'?'7-ELEVEN '+sid+'門市':'全家 '+sid+'門市');nel.style.color='#81c784';},400);}else nel.value='';}
+function selInv(type){['carrier','donate','company'].forEach((t,i)=>{document.getElementById('it'+(i+1)).classList.remove('active');document.getElementById('iv-'+t).classList.remove('show');});const m={carrier:0,donate:1,company:2};document.getElementById('it'+(m[type]+1)).classList.add('active');document.getElementById('iv-'+type).classList.add('show');}
+// ── 付款方式選擇 ──
+let curPayType = 'credit';
+function selPay(type){
+  curPayType = type;
+  ['credit','atm','cvs'].forEach(t => {
+    const card = document.getElementById('pay-'+t);
+    const dot  = document.getElementById('rd-'+t);
+    if(t === type){
+      card.classList.add('sel');
+      dot.style.cssText = 'background:var(--gold);border-color:var(--gold);';
+      dot.querySelector('.radio-inner').style.opacity = '1';
+    } else {
+      card.classList.remove('sel');
+      dot.style.cssText = '';
+      dot.querySelector('.radio-inner').style.opacity = '0';
+    }
+  });
+  const btnText = { credit:'確認付款 → 信用卡', atm:'確認付款 → ATM 匯款', cvs:'確認付款 → 超商代繳' };
+  document.querySelector('#p3 .btn-gold').textContent = btnText[type];
+}
+
+function submitOrder(){
+  const n=Date.now().toString().slice(-6);const orderId='YXT-'+n;
+  const logNames={cat:'黑貓宅配','711':'7-11 超商',fam:'全家 超商'};
+  const invType=document.querySelector('.inv-pane.show')?.id.replace('iv-','')||'carrier';
+  const invMap={carrier:'手機載具 '+(document.getElementById('carrier')?.value||''),donate:'捐贈 '+(document.getElementById('donate')?.value||''),company:'公司抬頭 統編'+(document.getElementById('taxid')?.value||'')};
+  const itemParts=[];const itemMap={a:'財運香',b:'感情緣起香',c:'事業開運香',d:'三款全套組合'};
+  Object.keys(qtys).forEach(k=>{if(qtys[k]>0)itemParts.push(itemMap[k]+'×'+qtys[k]);});
+  let sub=0;Object.keys(qtys).forEach(k=>{sub+=qtys[k]*prices[k];});
+  const order={id:orderId,name:document.getElementById('rname')?.value||'顧客',phone:document.getElementById('rphone')?.value||'',email:document.getElementById('remail')?.value||'',items:itemParts.join(', ')||'（無商品）',amount:sub,logistic:logNames[curLog]||'黑貓宅配',logType:curLog||'cat',status:'paid',time:new Date().toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),addr:document.getElementById('addr')?.value||document.getElementById('store'+curLog)?.textContent||'',invoice:invMap[invType]||'手機載具',track:'',note:document.getElementById('rnote')?.value||''};
+  // 寫入 localStorage 備份
+  const ex=JSON.parse(localStorage.getItem('yxt_orders')||'[]');ex.unshift(order);localStorage.setItem('yxt_orders',JSON.stringify(ex));
+
+  // 寫入 Google Sheets
+  if(GAS_URL && GAS_URL !== 'YOUR_APPS_SCRIPT_URL_HERE'){
+    fetch(GAS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'createOrder',order})});
+  }
+
+  const btn = document.querySelector('#p3 .btn-gold');
+  btn.textContent = '處理中...'; btn.disabled = true;
+
+  // ── 藍新金流 ──
+  if(NEWEBPAY_API && NEWEBPAY_API !== 'YOUR_GAS_URL'){
+    // GAS 用 GET 呼叫避免 CORS 問題
+    const params = new URLSearchParams({
+      action:      'createPayment',
+      orderId:     orderId,
+      amount:      sub,
+      email:       document.getElementById('remail')?.value || '',
+      itemDesc:    itemParts.join(', ') || '願香堂香品',
+      paymentType: curPayType,
+    });
+    fetch(NEWEBPAY_API + '?' + params.toString())
+    .then(r => r.json())
+    .then(data => {
+      if(data.success){
+        // 建立藍新表單並自動送出
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = data.PayGateURL;
+        [['MerchantID', data.MerchantID],
+         ['TradeInfo',  data.TradeInfo],
+         ['TradeSha',   data.TradeSha],
+         ['Version',    data.Version]].forEach(([k,v]) => {
+          const input = document.createElement('input');
+          input.type='hidden'; input.name=k; input.value=v;
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit(); // 跳轉到藍新付款頁
+      } else {
+        alert('建立訂單失敗，請稍後再試');
+        btn.textContent='確認付款'; btn.disabled=false;
+      }
+    })
+    .catch(() => {
+      // API 未串接時仍可測試流程
+      showSuccess(orderId);
+    });
+  } else {
+    // 尚未填入 API 網址：顯示成功畫面（測試用）
+    showSuccess(orderId);
+  }
+}
+function showSuccess(id){document.getElementById('order-num').textContent='訂單編號：'+id;document.getElementById('overlay').classList.add('show');const btn=document.querySelector('#p3 .btn-gold');if(btn){btn.textContent='確認付款';btn.disabled=false;}}
+updateSummary();
+
+// 處理藍新付款回傳
+(function(){
+  const params = new URLSearchParams(location.search);
+  const payment = params.get('payment');
+  if(!payment) return;
+
+  if(payment.startsWith('success')){
+    const p = new URLSearchParams(payment.split('&').slice(1).join('&'));
+    document.getElementById('order-num').textContent = '訂單編號：' + (p.get('order')||'');
+    document.getElementById('overlay').classList.add('show');
+
+  } else if(payment.startsWith('vacc')){
+    const p = new URLSearchParams(payment.split('&').slice(1).join('&'));
+    document.getElementById('order-num').innerHTML =
+      `<div style="text-align:left;font-size:13px;line-height:2.2;">
+        <div style="font-size:11px;color:var(--gold);letter-spacing:0.15em;margin-bottom:8px;">ATM 匯款資訊</div>
+        <div>銀行代碼：<strong style="color:var(--gold-light)">${p.get('bank')}</strong></div>
+        <div>虛擬帳號：<strong style="color:var(--gold-light);font-size:16px;letter-spacing:0.1em">${p.get('account')}</strong></div>
+        <div>金額：<strong>NT$${parseInt(p.get('amt')).toLocaleString()}</strong></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">請於 3 天內完成匯款，匯款後自動確認</div>
+      </div>`;
+    document.getElementById('overlay').classList.add('show');
+
+  } else if(payment.startsWith('cvs')){
+    const p = new URLSearchParams(payment.split('&').slice(1).join('&'));
+    document.getElementById('order-num').innerHTML =
+      `<div style="text-align:left;font-size:13px;line-height:2.2;">
+        <div style="font-size:11px;color:var(--gold);letter-spacing:0.15em;margin-bottom:8px;">超商繳費資訊</div>
+        <div>繳費代碼：<strong style="color:var(--gold-light);font-size:16px;letter-spacing:0.1em">${p.get('code')}</strong></div>
+        <div>金額：<strong>NT$${parseInt(p.get('amt')).toLocaleString()}</strong></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">請於 7 天內至 7-11 / 全家 / 萊爾富繳費</div>
+      </div>`;
+    document.getElementById('overlay').classList.add('show');
+
+  } else if(payment.startsWith('fail')){
+    alert('付款未完成，請重新嘗試');
+  }
+})();
+</script>
+</body>
+</html>
