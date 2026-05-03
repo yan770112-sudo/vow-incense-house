@@ -414,6 +414,33 @@ function submitOrder(){
   }
 }
 function showSuccess(id){document.getElementById('order-num').textContent='訂單編號：'+id;document.getElementById('overlay').classList.add('show');const btn=document.querySelector('#p3 .btn-gold');if(btn){btn.textContent='確認付款';btn.disabled=false;}}
+// ── 讀取購物車資料 ──
+(function(){
+  const cartData = localStorage.getItem('yxt_cart');
+  if(!cartData) return;
+  try {
+    const cart = JSON.parse(cartData);
+    // 先全部歸零
+    Object.keys(qtys).forEach(k => {
+      qtys[k] = 0;
+      document.getElementById('q'+k) && (document.getElementById('q'+k).textContent = 0);
+    });
+    // 填入購物車商品
+    const idMap = { caishi:'a', lvmu:'b', lianshi:'c', d:'d', bundle:'d' };
+    Object.values(cart.items).forEach(item => {
+      const key = idMap[item.id] || item.id;
+      if(qtys[key] !== undefined){
+        qtys[key] = item.qty || 1;
+        document.getElementById('q'+key) && (document.getElementById('q'+key).textContent = qtys[key]);
+        document.getElementById('p'+key) && (document.getElementById('p'+key).textContent = 'NT$'+(qtys[key]*prices[key]).toLocaleString());
+      }
+    });
+    updateSummary();
+    // 清除購物車避免重複
+    localStorage.removeItem('yxt_cart');
+  } catch(e) { console.error('Cart error:', e); }
+})();
+
 updateSummary();
 
 // 處理藍新付款回傳
