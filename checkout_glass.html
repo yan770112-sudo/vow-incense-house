@@ -326,7 +326,19 @@ function setStoreMethod(type,method){
   if(method==='map'){mapBtn.classList.add('active');codeBtn.classList.remove('active');mapBox.style.display='block';codeBox.style.display='none';}
   else{codeBtn.classList.add('active');mapBtn.classList.remove('active');codeBox.style.display='block';mapBox.style.display='none';}
 }
-function pickStore(type){const n=type==='711'?'7-ELEVEN 信義門市':'全家 忠孝店';const el=document.getElementById('store'+type);el.textContent='✓ 已選擇：'+n;el.style.display='block';}
+function pickStore(type){
+  const url = type==='711'
+    ? 'https://emap.7-11.com.tw/'
+    : 'https://www.family.com.tw/Marketing/inquiry.aspx';
+  window.open(url, '_blank', 'noopener');
+  setStoreMethod(type, 'code');
+  setTimeout(()=>{ document.getElementById(type+'-storeid')?.focus(); }, 100);
+  const el = document.getElementById('store'+type);
+  if(el){
+    el.innerHTML = '已開啟「'+(type==='711'?'7-ELEVEN':'全家')+'門市查詢」新分頁，請查到店號後回來輸入 ↓';
+    el.style.cssText = 'font-size:11px;color:var(--gold);margin-top:8px;display:block;line-height:1.6;';
+  }
+}
 function lookupStore(type){const sid=document.getElementById(type+'-storeid').value;const nel=document.getElementById(type+'-storename');if(sid.length>=5){nel.value='查詢中...';setTimeout(()=>{const demo={'170001':'7-ELEVEN 信義門市','009999':'全家 忠孝店'};nel.value=demo[sid]||(type==='711'?'7-ELEVEN '+sid+'門市':'全家 '+sid+'門市');nel.style.color='#81c784';},400);}else nel.value='';}
 function selInv(type){['carrier','donate','company'].forEach((t,i)=>{document.getElementById('it'+(i+1)).classList.remove('active');document.getElementById('iv-'+t).classList.remove('show');});const m={carrier:0,donate:1,company:2};document.getElementById('it'+(m[type]+1)).classList.add('active');document.getElementById('iv-'+type).classList.add('show');}
 // ── 付款方式選擇 ──
@@ -484,3 +496,4 @@ updateSummary();
 </script>
 </body>
 </html>
+
